@@ -1,0 +1,6 @@
+version: "2"
+authtoken: 37mBRdEWfBr99H5rgnBb5PhKfba_6DYCjiYaq17WgRBzrWbYD
+tunnels:
+  callcenter:
+    proto: http
+    addr: 3000
