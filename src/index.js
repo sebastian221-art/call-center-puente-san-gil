@@ -1,11 +1,15 @@
-require('dotenv').config();
+// Solo cargar .env en desarrollo local, no en producción
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const express = require('express');
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
 const { detectIntent, findStore } = require('./services/intentDetector');
 const stores = require('./data/stores');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
 app.use(express.urlencoded({ extended: false }));
 
@@ -21,7 +25,7 @@ app.post('/webhooks/twilio/incoming', (req, res) => {
   const twiml = new VoiceResponse();
   
   twiml.say(
-    { language: 'es-MX' },
+    { voice: 'Polly.Lupe', language: 'es-MX' },
     'Bienvenido al Centro Comercial Puente de San Gil'
   );
   
@@ -33,7 +37,7 @@ app.post('/webhooks/twilio/incoming', (req, res) => {
   });
   
   gather.say(
-    { language: 'es-MX' },
+    { voice: 'Polly.Lupe', language: 'es-MX' },
     '¿En qué puedo ayudarte? Puedes buscar un local, pedir horarios, o que te comuniquemos con alguna tienda.'
   );
   
@@ -78,7 +82,7 @@ app.post('/webhooks/twilio/process', (req, res) => {
       
     default:
       twiml.say(
-        { language: 'es-MX' },
+        { voice: 'Polly.Lupe', language: 'es-MX' },
         'No entendí tu solicitud. ¿Puedes ser más específico?'
       );
       twiml.redirect('/webhooks/twilio/incoming');
@@ -92,7 +96,7 @@ app.post('/webhooks/twilio/process', (req, res) => {
 function handleTransferIntent(twiml, stores, userText) {
   if (stores.length === 0) {
     twiml.say(
-      { language: 'es-MX' },
+      { voice: 'Polly.Lupe', language: 'es-MX' },
       'No encontré ese local en el centro comercial. ¿Buscas otra cosa?'
     );
     twiml.redirect('/webhooks/twilio/incoming');
@@ -102,17 +106,17 @@ function handleTransferIntent(twiml, stores, userText) {
   if (stores.length === 1) {
     const store = stores[0];
     twiml.say(
-      { language: 'es-MX' },
+      { voice: 'Polly.Lupe', language: 'es-MX' },
       `Encontré ${store.nombre}. Te voy a comunicar.`
     );
     
     // AQUÍ IRÍA LA TRANSFERENCIA REAL
     twiml.say(
-      { language: 'es-MX' },
+      { voice: 'Polly.Lupe', language: 'es-MX' },
       'Simulando transferencia... En producción esto llamaría al local.'
     );
     twiml.say(
-      { language: 'es-MX' },
+      { voice: 'Polly.Lupe', language: 'es-MX' },
       'Gracias por usar el sistema. Adiós.'
     );
     twiml.hangup();
@@ -122,7 +126,7 @@ function handleTransferIntent(twiml, stores, userText) {
   // Múltiples resultados
   const nombres = stores.map(s => s.nombre).join(', ');
   twiml.say(
-    { language: 'es-MX' },
+    { voice: 'Polly.Lupe', language: 'es-MX' },
     `Encontré ${stores.length} locales: ${nombres}. ¿A cuál quieres llamar?`
   );
   
@@ -134,7 +138,7 @@ function handleTransferIntent(twiml, stores, userText) {
   });
   
   gather.say(
-    { language: 'es-MX' },
+    { voice: 'Polly.Lupe', language: 'es-MX' },
     'Dime el nombre del local.'
   );
 }
@@ -143,7 +147,7 @@ function handleTransferIntent(twiml, stores, userText) {
 function handleSearchIntent(twiml, stores, userText) {
   if (stores.length === 0) {
     twiml.say(
-      { language: 'es-MX' },
+      { voice: 'Polly.Lupe', language: 'es-MX' },
       'No encontré ese local. ¿Buscas otra cosa?'
     );
     twiml.redirect('/webhooks/twilio/incoming');
@@ -153,11 +157,11 @@ function handleSearchIntent(twiml, stores, userText) {
   if (stores.length === 1) {
     const store = stores[0];
     twiml.say(
-      { language: 'es-MX' },
+      { voice: 'Polly.Lupe', language: 'es-MX' },
       `${store.nombre} está en ${store.ubicacion}.`
     );
     twiml.say(
-      { language: 'es-MX' },
+      { voice: 'Polly.Lupe', language: 'es-MX' },
       '¿Necesitas algo más?'
     );
     twiml.redirect('/webhooks/twilio/incoming');
@@ -170,7 +174,7 @@ function handleSearchIntent(twiml, stores, userText) {
   ).join('. ');
   
   twiml.say(
-    { language: 'es-MX' },
+    { voice: 'Polly.Lupe', language: 'es-MX' },
     `Encontré: ${ubicaciones}`
   );
   twiml.redirect('/webhooks/twilio/incoming');
@@ -180,7 +184,7 @@ function handleSearchIntent(twiml, stores, userText) {
 function handleScheduleIntent(twiml, stores, userText) {
   if (stores.length === 0) {
     twiml.say(
-      { language: 'es-MX' },
+      { voice: 'Polly.Lupe', language: 'es-MX' },
       'No encontré ese local. ¿De qué local quieres saber el horario?'
     );
     twiml.redirect('/webhooks/twilio/incoming');
@@ -193,7 +197,7 @@ function handleScheduleIntent(twiml, stores, userText) {
     .join('. ');
   
   twiml.say(
-    { language: 'es-MX' },
+    { voice: 'Polly.Lupe', language: 'es-MX' },
     `El horario de ${store.nombre} es: ${horarios}`
   );
   twiml.redirect('/webhooks/twilio/incoming');
@@ -202,16 +206,16 @@ function handleScheduleIntent(twiml, stores, userText) {
 // Manejar ayuda
 function handleHelpIntent(twiml) {
   twiml.say(
-    { language: 'es-MX' },
+    { voice: 'Polly.Lupe', language: 'es-MX' },
     'Puedo ayudarte a buscar locales, darte horarios, o comunicarte con alguna tienda. ¿Qué necesitas?'
   );
   twiml.redirect('/webhooks/twilio/incoming');
 }
 
-// Iniciar servidor
-app.listen(PORT, () => {
+// Iniciar servidor - IMPORTANTE: Escuchar en 0.0.0.0 para Render
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`
-  🚀 Servidor corriendo en http://localhost:${PORT}
+  🚀 Servidor corriendo en puerto ${PORT}
   📞 Sistema de Call Center listo
   🏬 Locales cargados: ${stores.length}
   `);
