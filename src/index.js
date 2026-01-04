@@ -9,18 +9,31 @@ const { detectIntent, findStore } = require('./services/intentDetector');
 const stores = require('./data/stores');
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
+
+// Middleware para logging de todas las peticiones
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.send('Call Center Puente de San Gil - API funcionando ✅');
 });
 
+// Health check para Render
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Endpoint para llamadas entrantes
 app.post('/webhooks/twilio/incoming', (req, res) => {
   console.log('📞 Llamada recibida:', req.body.CallSid);
+  console.log('📋 Datos completos:', JSON.stringify(req.body, null, 2));
   
   const twiml = new VoiceResponse();
   
@@ -212,11 +225,31 @@ function handleHelpIntent(twiml) {
   twiml.redirect('/webhooks/twilio/incoming');
 }
 
-// Iniciar servidor - IMPORTANTE: Escuchar en 0.0.0.0 para Render
-app.listen(PORT, '0.0.0.0', () => {
+// Iniciar servidor
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`
-  🚀 Servidor corriendo en puerto ${PORT}
-  📞 Sistema de Call Center listo
-  🏬 Locales cargados: ${stores.length}
+  ═══════════════════════════════════════
+  🚀 SERVIDOR INICIADO CORRECTAMENTE
+  ═══════════════════════════════════════
+  📍 Puerto: ${PORT}
+  🌐 URL: https://call-center-puente-san-gil.onrender.com
+  📞 Sistema: Call Center listo
+  🏬 Locales: ${stores.length} cargados
+  ⏰ Timestamp: ${new Date().toISOString()}
+  ═══════════════════════════════════════
   `);
+});
+
+// Manejar errores del servidor
+server.on('error', (error) => {
+  console.error('❌ Error en el servidor:', error);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🛑 SIGTERM recibido, cerrando servidor...');
+  server.close(() => {
+    console.log('✅ Servidor cerrado correctamente');
+    process.exit(0);
+  });
 });
